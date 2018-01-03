@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.min.css">
+<link rel="stylesheet" type="text/css" href="/css/main-30b6c319.css" />
+
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css" />
+
+<link rel="stylesheet" href="https://use.typekit.net/qfm8gvh.css">
+
+  <body class="flow-text">
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+  <div class="container">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="http://midhunkrishna.in">
+        reachme@midhunkrishna.in
+        
+      </a>
+
+      <div id="navbarBurger" class="navbar-burger burger" data-target="navMenuIndex">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+
+    <div id="navMenuIndex" class="navbar-menu">
+      <div class="navbar-start">
+      </div>
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <a> Worked On </a>
+        </div>
+
+        <div class="navbar-item">
+          <a> Open Source </a>
+        </div>
+
+        <div class="navbar-item">
+          <a> Contact Me </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+    <div class="loop section">
+      <div class="container post">
+        <h1>CTEs and Window Functions</h1>
+        <p>I am a big fan of code readability, but being a fan and expecting the code I write to be readable are two different things. Readable code is easier to understand and much more straightforward to grasp. One significant difference I find while comparing readable and unreadable code, apart from the obvious, is how many different variables I have to hold in my head at a time while I try to grapple my head around it. If this task is simple, I believe that this is not because of some random act of brilliance but due to careful code construction.</p>
+
+<p>A particular example is SQL. The more it does it usually gets unreadable, especially if I write it with an ‘as long as it works’ attitude and a good way to make it readable is using the above mentioned CTEs.</p>
+
+<p>CTEs helps achieve this by its ability to separate data into independent logical modules according to the context of the query.</p>
+
+<pre><code>WITH popular_posts AS
+(
+       SELECT id,
+              title,
+              body
+       FROM   posts
+       WHERE  posts.upvote &gt; 5 )
+SELECT *
+FROM   popular_posts
+WHERE  popular_posts.created_at &gt;= dateadd(day, x, getdate());
+</code></pre>
+
+<p>Here, we have clear classification for any post with upvote count six or above, thereby, logically abstracting away this(classification) into a variable called popular posts.</p>
+
+      </div>
+    </div>
+
+    <script src="/js/main-8fdd01d0.js" ></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" ></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/sql.min.js" ></script>
+
+<script>hljs.initHighlightingOnLoad();</script>
+
+  </body>
+</html>

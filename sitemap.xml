@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>http://midhunkrishna.in/post/CTEs-and-Window-Functions/</loc>
+    <lastmod>2017-12-09T17:43:52+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://midhunkrishna.in/post/</loc>
+    <lastmod>2017-12-09T17:43:52+05:30</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://midhunkrishna.in/</loc>
+    <lastmod>2017-12-09T17:43:52+05:30</lastmod>
+    <priority>0</priority>
+  </url>
+  
+</urlset>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>midhun</title>
+    <link>http://midhunkrishna.in/index.xml</link>
+    <description>Recent content on midhun</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 09 Dec 2017 17:43:52 +0530</lastBuildDate>
+    <atom:link href="http://midhunkrishna.in/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>CTEs and Window Functions</title>
+      <link>http://midhunkrishna.in/post/CTEs-and-Window-Functions/</link>
+      <pubDate>Sat, 09 Dec 2017 17:43:52 +0530</pubDate>
+      
+      <guid>http://midhunkrishna.in/post/CTEs-and-Window-Functions/</guid>
+      <description>&lt;p&gt;I am a big fan of code readability, but being a fan and expecting the code I write to be readable are two different things. Readable code is easier to understand and much more straightforward to grasp. One significant difference I find while comparing readable and unreadable code, apart from the obvious, is how many different variables I have to hold in my head at a time while I try to grapple my head around it. If this task is simple, I believe that this is not because of some random act of brilliance but due to careful code construction.&lt;/p&gt;
+
+&lt;p&gt;A particular example is SQL. The more it does it usually gets unreadable, especially if I write it with an ‘as long as it works’ attitude and a good way to make it readable is using the above mentioned CTEs.&lt;/p&gt;
+
+&lt;p&gt;CTEs helps achieve this by its ability to separate data into independent logical modules according to the context of the query.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;WITH popular_posts AS
+(
+       SELECT id,
+              title,
+              body
+       FROM   posts
+       WHERE  posts.upvote &amp;gt; 5 )
+SELECT *
+FROM   popular_posts
+WHERE  popular_posts.created_at &amp;gt;= dateadd(day, x, getdate());
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Here, we have clear classification for any post with upvote count six or above, thereby, logically abstracting away this(classification) into a variable called popular posts.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
