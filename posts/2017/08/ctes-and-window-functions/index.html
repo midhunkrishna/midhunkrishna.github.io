@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.min.css">
+<link rel="stylesheet" type="text/css" href="/css/main-ce21a04f.css" />
+
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css" />
+
+<link rel="stylesheet" href="https://use.typekit.net/qfm8gvh.css">
+
+  <body class="flow-text">
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+  <div class="container">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="http://midhunkrishna.in">
+        reachme@midhunkrishna.in
+        
+      </a>
+
+      <div id="navbarBurger" class="navbar-burger burger" data-target="navMenuIndex">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+
+    <div id="navMenuIndex" class="navbar-menu">
+      <div class="navbar-start">
+      </div>
+      <div class="navbar-end">
+        
+        
+        
+
+        
+        
+        
+
+        
+        
+        
+
+        <div class="navbar-item">
+          <a href="/posts"> Journal </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+    <div class="loop section content-item">
+      <div class="container post">
+        <div class="tk-museo heading">
+          <h1 class="flexi-h1">ctes and window functions</h1>
+          <div class="companion">
+            Readability through abstraction
+          </div>
+        </div>
+        <div class="content-body">
+          
+
+<p>I am a big fan of code readability, but being a fan and expecting the code I write to be readable are two different things. Readable code is easier to understand and much more straightforward to grasp. One significant difference I find while comparing readable and unreadable code, apart from the obvious, is how many different variables I have to hold in my head at a time while I try to grapple my head around it. If this task is simple, I believe that this is not because of some random act of brilliance but due to careful code construction.</p>
+
+<p>A particular example is SQL. The more it does, the more it gets unreadable, A good way to make it readable is using the above mentioned Common Table Expressions or CTEs.</p>
+
+<p>CTEs helps achieve this by its ability to separate data into independent logical entities according to the context of the query.</p>
+
+<script src="//gist.github.com/midhunkrishna/6c863c9b7125e89409395556c70ce790.js"></script>
+
+<p>Hence we have a clear classification called popular posts, which is an abstraction of any post with an upvote count of six or above.</p>
+
+<h2 id="what-i-came-across-the-other-day">What I came across the other day&hellip;</h2>
+
+<p>The other day I ran into a case in which a query was taking much more time than it should. When checked, I found that the join table was quite large. I didn&rsquo;t know how to handle this but hey, someone must have faced a similar issue and then I found out window functions.</p>
+
+<p>Lets take a use case and see how Window Functions can be of use.</p>
+
+<p>For a particular report, in our e-commerce app, we need to find out each item&rsquo;s latest n review-comments, in our case, we can set n = 2.</p>
+
+<p>We can write a simple join and then filter that in our application language (Ruby, Go, PHP etc.)</p>
+
+<script src="//gist.github.com/midhunkrishna/9c1336862b3946b305ddeea530fc03f2.js"></script>
+
+<p>but, for a system like Amazon, this solution would turn out to be awful since items might have large number of comments and to tackle the sheer number of items an comments, we will have to possibly reduce the dataset size even before the join.</p>
+
+<h2 id="window-function">Window Function</h2>
+
+<p>In general, a Window Function, is a mathematical function that is zero valued outside of some interval. In case of SQL engines, they operate on rows that are related to the current row, in our case, this can be the item_id. All rows of the join that has a common item_id acts as a partition over which the window function acts.</p>
+
+<h2 id="getting-back-to-our-problem">Getting back to our problem</h2>
+
+<p>We rewrite our query to do the following:</p>
+
+<ul>
+<li>Window function should operate on a partition of same item_ids<br /></li>
+<li>Each of these partitions should be ordered by created time stamp of review_comment<br /></li>
+<li>select only the top two from each partition<br />
+<br />
+<br /></li>
+</ul>
+
+<script src="//gist.github.com/midhunkrishna/bdd4e9a25e522e90c1fa93ee1bc39a78.js"></script>
+
+<p>This still is resulting in full join table, but now we have <code>comment_row_number</code> field to let us know that the newest review_comment has a value of 1. All we need to do now is to filter using that column. We have used row_number() function from postgres as the window function here. <a href="https://www.postgresql.org/docs/9.3/static/functions-window.html">According to the docs, </a>
+ any built-in or user-defined aggregate function can be used as a window function.</p>
+
+<script src="//gist.github.com/midhunkrishna/132a8c3bc1b3e380d90be2ca0b262c2e.js"></script>
+
+<h2 id="putting-it-all-together">Putting it all together</h2>
+
+<p>Even though we have our answer, our query has become pretty hard to read. We can get better readability by introducing a <a href="https://www.postgresql.org/docs/9.6/static/queries-with.html">Common Table Expression. </a>
+</p>
+
+<script src="//gist.github.com/midhunkrishna/685717a9a21cf066d60d1e473096e675.js"></script>
+
+<p>Well, that is it folks. We have put together two concepts, readbility and performance to create something which is the best of both worlds.</p>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/main-8fdd01d0.js" ></script>
+
+  </body>
+</html>
