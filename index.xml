@@ -6,8 +6,72 @@
     <description>Recent content on </description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 14 Aug 2017 15:31:25 +0530</lastBuildDate>
+    <lastBuildDate>Thu, 21 Sep 2017 14:21:14 +0530</lastBuildDate>
     <atom:link href="http://midhunkrishna.in/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>working with concurrent ruby</title>
+      <link>http://midhunkrishna.in/posts/2017/09/working-with-concurrent-ruby/</link>
+      <pubDate>Thu, 21 Sep 2017 14:21:14 +0530</pubDate>
+      
+      <guid>http://midhunkrishna.in/posts/2017/09/working-with-concurrent-ruby/</guid>
+      <description>
+
+&lt;p&gt;Most of us have worked on legacy/inherited code bases and sometimes we are assigned that exhilarating task of hunting down that performance issue which is causing worker threads to be killed, users to get pissed off and the support team to repent for their past sins.&lt;/p&gt;
+
+&lt;h2 id=&#34;the-dreaded-shipment-uploader&#34;&gt;The dreaded shipment uploader&lt;/h2&gt;
+
+&lt;p&gt;Being a TMS (Transportation Management System), our system dealt with Deliveries, and Shipments. The shipment uploader endpoint allowed the shipping companies to upload a csv which imported these shipments, grouped them into deliveries and calculated the projected cost of shipping these from their origin to destination and showed these values on the uploader UI itself.&lt;/p&gt;
+
+&lt;p&gt;We had a large number of users from multiple companies using that endpoint, so changing the UI to support an asynchronous upload ended up not being an option at all.&lt;/p&gt;
+
+&lt;p&gt;I got a copy of one of the files from S3 and started an upload, it took ~ 90 seconds for the upload to go through, used benchmark module to figure out what were the hot zones of that controller action and finally a pattern emerged. Time taken by the uploader was proportionate to the number of shipments assigned to a delivery.&lt;/p&gt;
+
+&lt;script src=&#34;//gist.github.com/midhunkrishna/f5de6c59f6bc198abc3126825770f68a.js&#34;&gt;&lt;/script&gt;
+
+&lt;p&gt;It seemed, validating routes and checking the packaging of cargos on each shipment took time. If I can run these operations parallelly, I could, in theory, cut down some time.&lt;/p&gt;
+
+&lt;h2 id=&#34;threads-and-concurrent-ruby&#34;&gt;Threads and Concurrent Ruby&lt;/h2&gt;
+
+&lt;p&gt;It is often intimidating even to entertain the idea of working with threads. They can bring in complexity, unpredictable behaviors and the later arises due to a lack of thread-safe code. Ruby is a language of mutable references, it is often difficult to write 100% thread-safe code, hence I needed something which offered primitives and patterns that would guarantee thread safety.&lt;/p&gt;
+
+&lt;p&gt;I checked &lt;a href=&#34;https://github.com/ruby-concurrency/concurrent-ruby&#34;&gt;Concurrent Ruby &lt;/a&gt;
+ and &lt;a href=&#34;https://github.com/celluloid/celluloid&#34;&gt;Celluloid &lt;/a&gt;
+ and decided to go with Concurrent Ruby since the application gemset had it (via Sidekiq)&lt;/p&gt;
+
+&lt;p&gt;I decided to refactor this using &lt;a href=&#34;https://github.com/ruby-concurrency/concurrent-ruby/blob/master/doc/future.md&#34;&gt;Concurrent Ruby Futures. &lt;/a&gt;
+. In general, using futures, one can perform an action atomically, in an asynchronous fashion, and then come back and collect the result of the action at a later time, and while collecting the result, the main thread blocks until the result of the action is available.&lt;/p&gt;
+
+&lt;script src=&#34;//gist.github.com/midhunkrishna/b38b6bacfe377e8a8ffd5fc3812af2ac.js&#34;&gt;&lt;/script&gt;
+
+&lt;p&gt;This seemed to fix the performance problem we were facing. I was able to get the uploader to finish under 20 seconds. Little did I know that this would blow up in my face 10 minutes later.&lt;/p&gt;
+
+&lt;h2 id=&#34;concurrent-ruby-futures-and-exceptions&#34;&gt;Concurrent Ruby Futures and Exceptions&lt;/h2&gt;
+
+&lt;p&gt;Usually, when an exception occurs, in the main thread, the interpreter stops and gathers the exception data and then it exists with the exception and the gathered data. In the case of Ruby Threads, when calling Thread#join, the exception that occured in the thread are processed. As an alternative to this, we can also set &lt;a href=&#34;https://ruby-doc.org/core-1.9.3/Thread.html#method-c-abort_on_exception&#34;&gt;Thread#abort_on_exception &lt;/a&gt;
+ to be true, which will cause all threads to &lt;a href=&#34;https://stackoverflow.com/questions/9095316/handling-exceptions-raised-in-a-ruby-thread#answer-9095369&#34;&gt;exit when an exception is raised in any threads. &lt;/a&gt;
+&lt;/p&gt;
+
+&lt;p&gt;In the case of Concurrent Ruby Futures, exceptions are swallowed.&lt;/p&gt;
+
+&lt;h2 id=&#34;promises-to-the-rescue&#34;&gt;Promises to the rescue.&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/ruby-concurrency/concurrent-ruby/blob/master/doc/promises.in.md&#34;&gt;Concurrent Ruby Promises  &lt;/a&gt;
+ are very much like Futures, but with extra features and one of which is that the promise object keeps track of its state.&lt;/p&gt;
+
+&lt;script src=&#34;//gist.github.com/midhunkrishna/ce5356e1375d306f42be376999434b5f.js&#34;&gt;&lt;/script&gt;
+
+&lt;p&gt;What happens if each of these threads raised their exception? I decided to write a wrapper around Concurrent Ruby Promise. Why a wrapper, you might ask. The primary motivation was that I should be able to tap into all these concurrent goodness without worrying a lot, without scratching my head as to why I did not get a notification when that failed to process.&lt;/p&gt;
+
+&lt;p&gt;The final implementation is,&lt;/p&gt;
+
+&lt;script src=&#34;//gist.github.com/midhunkrishna/8f683668da68cd02d97c9937a7676f24.js&#34;&gt;&lt;/script&gt;
+
+&lt;h2 id=&#34;summing-it-up&#34;&gt;Summing it up&lt;/h2&gt;
+
+&lt;p&gt;At the end of the day, I learned a lot from this little excercise. In this particular case, each shipment objects were different and independant and hence all I needed was a good solid solution that would give me a good abstraction which is clean and easy to use at the same time, provided a level of thread safety through concurrent primitives which I could rely on.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>ctes and window functions</title>
