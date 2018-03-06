@@ -2,6 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://midhunkrishna.in/posts/2017/10/private-class-methods-in-ruby/</loc>
+    <lastmod>2017-10-18T23:49:34+05:30</lastmod>
+  </url>
+  
+  <url>
     <loc>http://midhunkrishna.in/posts/2017/09/working-with-concurrent-ruby/</loc>
     <lastmod>2017-09-21T14:21:14+05:30</lastmod>
   </url>
@@ -13,13 +18,13 @@
   
   <url>
     <loc>http://midhunkrishna.in/</loc>
-    <lastmod>2017-09-21T14:21:14+05:30</lastmod>
+    <lastmod>2017-10-18T23:49:34+05:30</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://midhunkrishna.in/posts/</loc>
-    <lastmod>2017-09-21T14:21:14+05:30</lastmod>
+    <lastmod>2017-10-18T23:49:34+05:30</lastmod>
   </url>
   
 </urlset>

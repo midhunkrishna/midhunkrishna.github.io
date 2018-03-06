@@ -6,8 +6,201 @@
     <description>Recent content on </description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 21 Sep 2017 14:21:14 +0530</lastBuildDate>
+    <lastBuildDate>Wed, 18 Oct 2017 23:49:34 +0530</lastBuildDate>
     <atom:link href="http://midhunkrishna.in/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>private class methods in ruby</title>
+      <link>http://midhunkrishna.in/posts/2017/10/private-class-methods-in-ruby/</link>
+      <pubDate>Wed, 18 Oct 2017 23:49:34 +0530</pubDate>
+      
+      <guid>http://midhunkrishna.in/posts/2017/10/private-class-methods-in-ruby/</guid>
+      <description>
+
+&lt;p&gt;A while back, the CTO of my client company assigned me a ticket, which was to fix a bug that has been plaguing their systems for a while. It turned out to be a bug in the custom serializer they had, which would serialize and deserialize data sent between their microservices.&lt;/p&gt;
+
+&lt;p&gt;This serializer was small enough to be written in a single class and had two or three methods which did all the heavy lifting and obviously were fat. After combing through the implementation for a while and testing it with data, I finally figured out the bug it carried and fixed it, but the fat methods were an eyesore, and like a good boy scout, I decided to refactor it.&lt;/p&gt;
+
+&lt;p&gt;The serializer dealt with no state at all which meant that the methods were all class methods, and splitting up class methods are always a pain.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;CustomSerializer&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;serialize&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;objects&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{})&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;list&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;associated_records&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;objects&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;unwanted_associations&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;blacklisted_associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;unwanted_attributes&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;blacklisted_attributes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+    &lt;span class=&#34;n&#34;&gt;list&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;each&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;do&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;|&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;object&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;associations&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;
+      &lt;span class=&#34;n&#34;&gt;remove_blacklisted_associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;unwanted_associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+      &lt;span class=&#34;c1&#34;&gt;# you get the idea&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;deserialize&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;json&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{})&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;blacklisted_associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;blacklisted_attributes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;associated_records&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;These methods, are only usable within the context of the class, and usually, we hide them using access modifiers, but how does one hide a class method?&lt;/p&gt;
+
+&lt;h2 id=&#34;private-class-methods-to-the-rescue&#34;&gt;Private Class Methods to the rescue.&lt;/h2&gt;
+
+&lt;p&gt;As discussed in &lt;a href=&#34;http://ruby-doc.org/core-2.0.0/Module.html#method-i-private_class_method&#34;&gt;ruby docs &lt;/a&gt;
+, &lt;code&gt;private_class_methods&lt;/code&gt; are used to make existing class methods hidden.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;SimpleSingleton&lt;/span&gt;  &lt;span class=&#34;c1&#34;&gt;# Not thread safe&lt;/span&gt;
+  &lt;span class=&#34;nb&#34;&gt;private_class_method&lt;/span&gt; &lt;span class=&#34;ss&#34;&gt;:new&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;SimpleSingleton&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;create&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;block&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+    &lt;span class=&#34;vi&#34;&gt;@me&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;kp&#34;&gt;new&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;block&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!&lt;/span&gt; &lt;span class=&#34;vi&#34;&gt;@me&lt;/span&gt;
+    &lt;span class=&#34;vi&#34;&gt;@me&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the above example, taken from the docs, it hides the constructor :new. But what happens when you have one too many class methods you need to hide?.&lt;/p&gt;
+
+&lt;p&gt;Incorporating private_class_method into our earlier class, it becomes,&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;CustomSerializer&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;serialize&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;objects&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{})&lt;/span&gt;
+    &lt;span class=&#34;c1&#34;&gt;# same&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;deserialize&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;json&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{})&lt;/span&gt;
+    &lt;span class=&#34;c1&#34;&gt;# same&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;blacklisted_associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;blacklisted_attributes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;associated_records&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+  &lt;span class=&#34;nb&#34;&gt;private_class_method&lt;/span&gt; &lt;span class=&#34;ss&#34;&gt;:blacklisted_associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;ss&#34;&gt;:blacklisted_attributes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;ss&#34;&gt;:associated_records&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This works!, but what if the class is very large that I need to scroll all the way down to see which ones are private class methods? If only I had something similar to &lt;a href=&#34;http://api.rubyonrails.org/classes/ActiveSupport/Concern.html#method-i-class_methods&#34;&gt;class_methods  from ActiveSupport::Concern &lt;/a&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s take a quick detour and see what public methods are.&lt;/p&gt;
+
+&lt;h2 id=&#34;public-methods-in-ruby&#34;&gt;Public Methods in Ruby&lt;/h2&gt;
+
+&lt;p&gt;Lets take any public method from the above class and look at it a little deeper.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;CustomSerializer&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;associated_records&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.public_methods.grep /associated_records/&lt;/span&gt;
+&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; [:associated_records]&lt;/span&gt;
+
+&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.singleton_class.instance_methods.grep /associated_records/&lt;/span&gt;
+&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; [:associated_records]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Basically, class methods are instance methods of any class&amp;rsquo;s singleton_class or &lt;a href=&#34;https://github.com/ruby/ruby/blob/v2_5_0/class.c#L15-L22&#34;&gt;eigenclass. &lt;/a&gt;
+ This basically means that we can do something like:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;CustomSerializer&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;self&lt;/span&gt;
+    &lt;span class=&#34;kp&#34;&gt;private&lt;/span&gt;
+
+    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;associated_records&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.public_methods.grep /associated_records/&lt;/span&gt;
+&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; []&lt;/span&gt;
+
+&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.associated_records&lt;/span&gt;
+&lt;span class=&#34;c1&#34;&gt;# NoMethodError: private method `associated_records&amp;#39; called for CustomSerializer:Class&lt;/span&gt;
+&lt;span class=&#34;c1&#34;&gt;#   from (irb):xx&lt;/span&gt;
+
+&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.singleton_class.private_instance_methods.grep /associated_records/&lt;/span&gt;
+&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; [:associated_records]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We now have a way to avoid the repetition and to improve the readability of the code. Only problem is, do all of us understand what is going on here? Ruby as a language gives us immense meta-programming flexibility and I decided to take this even further.&lt;/p&gt;
+
+&lt;h2 id=&#34;how-far-can-we-go-with-this&#34;&gt;How far can we go with this?&lt;/h2&gt;
+
+&lt;p&gt;Remember the &lt;code&gt;class_methods&lt;/code&gt; method defined on module from ActiveSupport::Concern? Will ruby allow us to do something like that?. Lets take a look at the source code for &lt;code&gt;class_methods&lt;/code&gt; from ActiveSupport::Concern.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;# File activesupport/lib/active_support/concern.rb, line 134&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;class_methods&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;class_methods_module_definition&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+  &lt;span class=&#34;n&#34;&gt;mod&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;const_defined?&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;ss&#34;&gt;:ClassMethods&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;kp&#34;&gt;false&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;?&lt;/span&gt;
+    &lt;span class=&#34;nb&#34;&gt;const_get&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;ss&#34;&gt;:ClassMethods&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+    &lt;span class=&#34;nb&#34;&gt;const_set&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;ss&#34;&gt;:ClassMethods&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;no&#34;&gt;Module&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;new&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+  &lt;span class=&#34;n&#34;&gt;mod&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;module_eval&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;class_methods_module_definition&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The following is what happens when that method is executed:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;the method &lt;code&gt;class_methods&lt;/code&gt; checks whether there is an already exisiting constant, &lt;code&gt;:ClassMethods&lt;/code&gt;&lt;br /&gt;&lt;/li&gt;
+&lt;li&gt;if it is not present, instantiate an anonymous module and set it to local variable &lt;code&gt;mod&lt;/code&gt;&lt;br /&gt;&lt;/li&gt;
+&lt;li&gt;runs &lt;code&gt;module_eval on mod&lt;/code&gt; with the given block.&lt;br /&gt;
+&lt;br /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Let&amp;rsquo;s decipher what ActiveSupport does here by trying this out on the console and filling the blanks whenever necessary.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;module&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;Holder&lt;/span&gt;
+  &lt;span class=&#34;n&#34;&gt;mod&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;const_set&lt;/span&gt; &lt;span class=&#34;ss&#34;&gt;:ClassMethods&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;no&#34;&gt;Module&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;new&lt;/span&gt;
+  &lt;span class=&#34;n&#34;&gt;mod&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;module_eval&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;do&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;associated_records&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; Holder::ClassMethods.class&lt;/span&gt;
+&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; Module&lt;/span&gt;
+
+&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;CustomSerializer&lt;/span&gt;
+  &lt;span class=&#34;kp&#34;&gt;extend&lt;/span&gt; &lt;span class=&#34;no&#34;&gt;Holder&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;::&lt;/span&gt;&lt;span class=&#34;no&#34;&gt;ClassMethod&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.singleton_class.instance_methods.grep /associated_records/&lt;/span&gt;
+&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; [:associated_records]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In short, ActiveSuppoert::Concern uses an anonymous class as a temporary storage. But can we use this to create a helper of our own? This is what I came up with.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;Object&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;private_class_methods&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;block&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;anonymous_module&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;no&#34;&gt;Module&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;new&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;block&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;anonymous_module&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;instance_methods&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;each&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;method&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;anonymous_module&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;send&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;ss&#34;&gt;:private&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;method&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+    &lt;span class=&#34;kp&#34;&gt;extend&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;anonymous_module&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;CustomSerializer&lt;/span&gt;
+  &lt;span class=&#34;n&#34;&gt;private_class_methods&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;do&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;associated_records&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
+
+&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.singleton_class.private_instance_methods.grep /associated_records/&lt;/span&gt;
+&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; [:associated_records]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&#34;getting-back-to-our-refactor&#34;&gt;Getting back to our refactor&lt;/h2&gt;
+
+&lt;p&gt;In the end, I went with the &lt;code&gt;private_class_methods :method_A, :method_B&lt;/code&gt;. Why, one might ask. I went through the code base and checked for usages of private_class_method and for classes that could use this helper. I couldnt find much. I checked for the churn of CustomSerializer class. It was very low, and again, this new method isnt documented anywhere so, another developer will have to grep through the codebase to find its definition.&lt;/p&gt;
+
+&lt;p&gt;In the end cons associated with patching a core class outweighed the pros of having a handy helper.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>working with concurrent ruby</title>
