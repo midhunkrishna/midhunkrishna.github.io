@@ -65,7 +65,7 @@
 <p>This serializer was small enough to be written in a single class and had two or three methods which did all the heavy lifting and obviously were fat. After combing through the implementation for a while and testing it with data, I finally figured out the bug it carried and fixed it, but the fat methods were an eyesore, and like a good boy scout, I decided to refactor it.</p>
 
 <p>The serializer dealt with no state at all which meant that the methods were all class methods, and splitting up class methods are always a pain.</p>
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span></span><span class="k">class</span> <span class="nc">CustomSerializer</span>
+<div class="highlight"><pre class="chroma"><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">CustomSerializer</span>
   <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">serialize</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{})</span>
     <span class="n">list</span> <span class="o">=</span> <span class="n">associated_records</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
     <span class="n">unwanted_associations</span> <span class="o">=</span> <span class="n">blacklisted_associations</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
@@ -88,28 +88,24 @@
 
   <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">associated_records</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
   <span class="k">end</span>
-<span class="k">end</span>
-</code></pre></div>
-
+<span class="k">end</span></code></pre></div>
 <p>These methods, are only usable within the context of the class, and usually, we hide them using access modifiers, but how does one hide a class method?</p>
 
 <h2 id="private-class-methods-to-the-rescue">Private Class Methods to the rescue.</h2>
 
 <p>As discussed in <a href="http://ruby-doc.org/core-2.0.0/Module.html#method-i-private_class_method">ruby docs </a>
 , <code>private_class_methods</code> are used to make existing class methods hidden.</p>
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span></span><span class="k">class</span> <span class="nc">SimpleSingleton</span>  <span class="c1"># Not thread safe</span>
+<div class="highlight"><pre class="chroma"><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">SimpleSingleton</span>  <span class="c1"># Not thread safe</span>
   <span class="nb">private_class_method</span> <span class="ss">:new</span>
   <span class="k">def</span> <span class="nc">SimpleSingleton</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
     <span class="vi">@me</span> <span class="o">=</span> <span class="kp">new</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span><span class="p">)</span> <span class="k">if</span> <span class="o">!</span> <span class="vi">@me</span>
     <span class="vi">@me</span>
   <span class="k">end</span>
-<span class="k">end</span>
-</code></pre></div>
-
+<span class="k">end</span></code></pre></div>
 <p>In the above example, taken from the docs, it hides the constructor :new. But what happens when you have one too many class methods you need to hide?.</p>
 
 <p>Incorporating private_class_method into our earlier class, it becomes,</p>
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span></span><span class="k">class</span> <span class="nc">CustomSerializer</span>
+<div class="highlight"><pre class="chroma"><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">CustomSerializer</span>
   <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">serialize</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{})</span>
     <span class="c1"># same</span>
   <span class="k">end</span>
@@ -128,9 +124,7 @@
   <span class="k">end</span>
 
   <span class="nb">private_class_method</span> <span class="ss">:blacklisted_associations</span><span class="p">,</span> <span class="ss">:blacklisted_attributes</span><span class="p">,</span> <span class="ss">:associated_records</span>
-<span class="k">end</span>
-</code></pre></div>
-
+<span class="k">end</span></code></pre></div>
 <p>This works!, but what if the class is very large that I need to scroll all the way down to see which ones are private class methods? If only I had something similar to <a href="http://api.rubyonrails.org/classes/ActiveSupport/Concern.html#method-i-class_methods">class_methods  from ActiveSupport::Concern </a>
 </p>
 
@@ -139,7 +133,7 @@
 <h2 id="public-methods-in-ruby">Public Methods in Ruby</h2>
 
 <p>Lets take any public method from the above class and look at it a little deeper.</p>
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span></span><span class="k">class</span> <span class="nc">CustomSerializer</span>
+<div class="highlight"><pre class="chroma"><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">CustomSerializer</span>
   <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">associated_records</span>
   <span class="k">end</span>
 <span class="k">end</span>
@@ -148,12 +142,10 @@
 <span class="c1"># =&gt; [:associated_records]</span>
 
 <span class="c1"># :xx &gt; CustomSerializer.singleton_class.instance_methods.grep /associated_records/</span>
-<span class="c1"># =&gt; [:associated_records]</span>
-</code></pre></div>
-
+<span class="c1"># =&gt; [:associated_records]</span></code></pre></div>
 <p>Basically, class methods are instance methods of any class&rsquo;s singleton_class or <a href="https://github.com/ruby/ruby/blob/v2_5_0/class.c#L15-L22">eigenclass. </a>
  This basically means that we can do something like:</p>
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span></span><span class="k">class</span> <span class="nc">CustomSerializer</span>
+<div class="highlight"><pre class="chroma"><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">CustomSerializer</span>
   <span class="k">class</span> <span class="o">&lt;&lt;</span> <span class="nb">self</span>
     <span class="kp">private</span>
 
@@ -170,24 +162,20 @@
 <span class="c1">#   from (irb):xx</span>
 
 <span class="c1"># :xx &gt; CustomSerializer.singleton_class.private_instance_methods.grep /associated_records/</span>
-<span class="c1"># =&gt; [:associated_records]</span>
-</code></pre></div>
-
+<span class="c1"># =&gt; [:associated_records]</span></code></pre></div>
 <p>We now have a way to avoid the repetition and to improve the readability of the code. Only problem is, do all of us understand what is going on here? Ruby as a language gives us immense meta-programming flexibility and I decided to take this even further.</p>
 
 <h2 id="how-far-can-we-go-with-this">How far can we go with this?</h2>
 
 <p>Remember the <code>class_methods</code> method defined on module from ActiveSupport::Concern? Will ruby allow us to do something like that?. Lets take a look at the source code for <code>class_methods</code> from ActiveSupport::Concern.</p>
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span></span><span class="c1"># File activesupport/lib/active_support/concern.rb, line 134</span>
+<div class="highlight"><pre class="chroma"><code class="language-ruby" data-lang="ruby"><span class="c1"># File activesupport/lib/active_support/concern.rb, line 134</span>
 <span class="k">def</span> <span class="nf">class_methods</span><span class="p">(</span><span class="o">&amp;</span><span class="n">class_methods_module_definition</span><span class="p">)</span>
   <span class="n">mod</span> <span class="o">=</span> <span class="nb">const_defined?</span><span class="p">(</span><span class="ss">:ClassMethods</span><span class="p">,</span> <span class="kp">false</span><span class="p">)</span> <span class="p">?</span>
     <span class="nb">const_get</span><span class="p">(</span><span class="ss">:ClassMethods</span><span class="p">)</span> <span class="p">:</span>
     <span class="nb">const_set</span><span class="p">(</span><span class="ss">:ClassMethods</span><span class="p">,</span> <span class="no">Module</span><span class="o">.</span><span class="n">new</span><span class="p">)</span>
 
   <span class="n">mod</span><span class="o">.</span><span class="n">module_eval</span><span class="p">(</span><span class="o">&amp;</span><span class="n">class_methods_module_definition</span><span class="p">)</span>
-<span class="k">end</span>
-</code></pre></div>
-
+<span class="k">end</span></code></pre></div>
 <p>The following is what happens when that method is executed:</p>
 
 <ul>
@@ -198,7 +186,7 @@
 </ul>
 
 <p>Let&rsquo;s decipher what ActiveSupport does here by trying this out on the console and filling the blanks whenever necessary.</p>
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span></span><span class="k">module</span> <span class="nn">Holder</span>
+<div class="highlight"><pre class="chroma"><code class="language-ruby" data-lang="ruby"><span class="k">module</span> <span class="nn">Holder</span>
   <span class="n">mod</span> <span class="o">=</span> <span class="nb">const_set</span> <span class="ss">:ClassMethods</span><span class="p">,</span> <span class="no">Module</span><span class="o">.</span><span class="n">new</span>
   <span class="n">mod</span><span class="o">.</span><span class="n">module_eval</span> <span class="k">do</span>
     <span class="k">def</span> <span class="nf">associated_records</span>
@@ -214,11 +202,9 @@
 <span class="k">end</span>
 
 <span class="c1"># :xx &gt; CustomSerializer.singleton_class.instance_methods.grep /associated_records/</span>
-<span class="c1"># =&gt; [:associated_records]</span>
-</code></pre></div>
-
+<span class="c1"># =&gt; [:associated_records]</span></code></pre></div>
 <p>In short, ActiveSuppoert::Concern uses an anonymous class as a temporary storage. But can we use this to create a helper of our own? This is what I came up with.</p>
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span></span><span class="k">class</span> <span class="nc">Object</span>
+<div class="highlight"><pre class="chroma"><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">Object</span>
   <span class="k">def</span> <span class="nf">private_class_methods</span> <span class="o">&amp;</span><span class="n">block</span>
     <span class="n">anonymous_module</span> <span class="o">=</span> <span class="no">Module</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
     <span class="n">anonymous_module</span><span class="o">.</span><span class="n">instance_methods</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span> <span class="o">|</span><span class="nb">method</span><span class="o">|</span> <span class="n">anonymous_module</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="ss">:private</span><span class="p">,</span> <span class="nb">method</span><span class="p">)</span> <span class="p">}</span>
@@ -234,53 +220,15 @@
 <span class="k">end</span>
 
 <span class="c1"># :xx &gt; CustomSerializer.singleton_class.private_instance_methods.grep /associated_records/</span>
-<span class="c1"># =&gt; [:associated_records]</span>
-</code></pre></div>
-
+<span class="c1"># =&gt; [:associated_records]</span></code></pre></div>
 <h2 id="getting-back-to-our-refactor">Getting back to our refactor</h2>
 
 <p>In the end, I went with the <code>private_class_methods :method_A, :method_B</code>. Why, one might ask. I went through the code base and checked for usages of private_class_method and for classes that could use this helper. I couldnt find much. I checked for the churn of CustomSerializer class. It was very low, and again, this new method isnt documented anywhere so, another developer will have to grep through the codebase to find its definition.</p>
 
 <p>In the end cons associated with patching a core class outweighed the pros of having a handy helper.</p>
 
-          <div id="disqus_thread"></div>
-<script type="text/javascript">
-
-(function() {
-    
-    
-    if (window.location.hostname == "localhost")
-        return;
-
-    var dsq = document.createElement('script');
-    dsq.type = 'text/javascript';
-    dsq.async = true;
-
-    var disqus_shortname = 'midhunkrishna';
-    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();
-</script>
-
-<noscript>
-  Please enable JavaScript to view the
-  <a href="http://disqus.com/?ref_noscript">
-    comments powered by Disqus.
-  </a>
-</noscript>
-
-<a href="http://disqus.com/" class="dsq-brlink">
-  comments powered by
-  <span class="logo-disqus">
-    Disqus
-  </span>
-</a>
-
         </div>
       </div>
     </div>
-
-    <script src="/js/main-8fdd01d0.js" ></script>
-
   </body>
 </html>

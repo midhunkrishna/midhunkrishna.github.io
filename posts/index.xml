@@ -2,12 +2,23 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title></title>
-    <link>http://midhunkrishna.in/posts/index.xml</link>
+    <link>http://midhunkrishna.in/posts/</link>
     <description>Recent content on </description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 18 Oct 2017 23:49:34 +0530</lastBuildDate>
-    <atom:link href="http://midhunkrishna.in/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 09 Mar 2019 14:04:15 +0530</lastBuildDate>
+    
+	<atom:link href="http://midhunkrishna.in/posts/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>maintaining multiple database versions</title>
+      <link>http://midhunkrishna.in/posts/2019/03/maintaining-multiple-database-versions/</link>
+      <pubDate>Sat, 09 Mar 2019 14:04:15 +0530</pubDate>
+      
+      <guid>http://midhunkrishna.in/posts/2019/03/maintaining-multiple-database-versions/</guid>
+      <description>Introduction: Rainbows and Unicorns. As a web dev, I interact with a lot of tools that help me convert coffee (these days I have switched over to tea) to code, and for the most part, different versions of the same tools in my toolbelt co-exist as they have their version-managers. The real power of the version managers become apparent whenever I move from one project to another, The Next Amazon project is using Ruby 2.</description>
+    </item>
     
     <item>
       <title>private class methods in ruby</title>
@@ -15,191 +26,8 @@
       <pubDate>Wed, 18 Oct 2017 23:49:34 +0530</pubDate>
       
       <guid>http://midhunkrishna.in/posts/2017/10/private-class-methods-in-ruby/</guid>
-      <description>
-
-&lt;p&gt;A while back, the CTO of my client company assigned me a ticket, which was to fix a bug that has been plaguing their systems for a while. It turned out to be a bug in the custom serializer they had, which would serialize and deserialize data sent between their microservices.&lt;/p&gt;
-
-&lt;p&gt;This serializer was small enough to be written in a single class and had two or three methods which did all the heavy lifting and obviously were fat. After combing through the implementation for a while and testing it with data, I finally figured out the bug it carried and fixed it, but the fat methods were an eyesore, and like a good boy scout, I decided to refactor it.&lt;/p&gt;
-
-&lt;p&gt;The serializer dealt with no state at all which meant that the methods were all class methods, and splitting up class methods are always a pain.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;CustomSerializer&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;serialize&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;objects&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{})&lt;/span&gt;
-    &lt;span class=&#34;n&#34;&gt;list&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;associated_records&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;objects&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-    &lt;span class=&#34;n&#34;&gt;unwanted_associations&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;blacklisted_associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-    &lt;span class=&#34;n&#34;&gt;unwanted_attributes&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;blacklisted_attributes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-
-    &lt;span class=&#34;n&#34;&gt;list&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;each&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;do&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;|&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;object&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;associations&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;
-      &lt;span class=&#34;n&#34;&gt;remove_blacklisted_associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;unwanted_associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-      &lt;span class=&#34;c1&#34;&gt;# you get the idea&lt;/span&gt;
-    &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;deserialize&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;json&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{})&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;blacklisted_associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;blacklisted_attributes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;associated_records&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;These methods, are only usable within the context of the class, and usually, we hide them using access modifiers, but how does one hide a class method?&lt;/p&gt;
-
-&lt;h2 id=&#34;private-class-methods-to-the-rescue&#34;&gt;Private Class Methods to the rescue.&lt;/h2&gt;
-
-&lt;p&gt;As discussed in &lt;a href=&#34;http://ruby-doc.org/core-2.0.0/Module.html#method-i-private_class_method&#34;&gt;ruby docs &lt;/a&gt;
-, &lt;code&gt;private_class_methods&lt;/code&gt; are used to make existing class methods hidden.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;SimpleSingleton&lt;/span&gt;  &lt;span class=&#34;c1&#34;&gt;# Not thread safe&lt;/span&gt;
-  &lt;span class=&#34;nb&#34;&gt;private_class_method&lt;/span&gt; &lt;span class=&#34;ss&#34;&gt;:new&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;SimpleSingleton&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;create&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;block&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-    &lt;span class=&#34;vi&#34;&gt;@me&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;kp&#34;&gt;new&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;block&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!&lt;/span&gt; &lt;span class=&#34;vi&#34;&gt;@me&lt;/span&gt;
-    &lt;span class=&#34;vi&#34;&gt;@me&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In the above example, taken from the docs, it hides the constructor :new. But what happens when you have one too many class methods you need to hide?.&lt;/p&gt;
-
-&lt;p&gt;Incorporating private_class_method into our earlier class, it becomes,&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;CustomSerializer&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;serialize&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;objects&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{})&lt;/span&gt;
-    &lt;span class=&#34;c1&#34;&gt;# same&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;deserialize&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;json&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{})&lt;/span&gt;
-    &lt;span class=&#34;c1&#34;&gt;# same&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;blacklisted_associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;blacklisted_attributes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;associated_records&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-  &lt;span class=&#34;nb&#34;&gt;private_class_method&lt;/span&gt; &lt;span class=&#34;ss&#34;&gt;:blacklisted_associations&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;ss&#34;&gt;:blacklisted_attributes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;ss&#34;&gt;:associated_records&lt;/span&gt;
-&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This works!, but what if the class is very large that I need to scroll all the way down to see which ones are private class methods? If only I had something similar to &lt;a href=&#34;http://api.rubyonrails.org/classes/ActiveSupport/Concern.html#method-i-class_methods&#34;&gt;class_methods  from ActiveSupport::Concern &lt;/a&gt;
-&lt;/p&gt;
-
-&lt;p&gt;Let&amp;rsquo;s take a quick detour and see what public methods are.&lt;/p&gt;
-
-&lt;h2 id=&#34;public-methods-in-ruby&#34;&gt;Public Methods in Ruby&lt;/h2&gt;
-
-&lt;p&gt;Lets take any public method from the above class and look at it a little deeper.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;CustomSerializer&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;associated_records&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.public_methods.grep /associated_records/&lt;/span&gt;
-&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; [:associated_records]&lt;/span&gt;
-
-&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.singleton_class.instance_methods.grep /associated_records/&lt;/span&gt;
-&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; [:associated_records]&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Basically, class methods are instance methods of any class&amp;rsquo;s singleton_class or &lt;a href=&#34;https://github.com/ruby/ruby/blob/v2_5_0/class.c#L15-L22&#34;&gt;eigenclass. &lt;/a&gt;
- This basically means that we can do something like:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;CustomSerializer&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;self&lt;/span&gt;
-    &lt;span class=&#34;kp&#34;&gt;private&lt;/span&gt;
-
-    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;associated_records&lt;/span&gt;
-    &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.public_methods.grep /associated_records/&lt;/span&gt;
-&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; []&lt;/span&gt;
-
-&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.associated_records&lt;/span&gt;
-&lt;span class=&#34;c1&#34;&gt;# NoMethodError: private method `associated_records&amp;#39; called for CustomSerializer:Class&lt;/span&gt;
-&lt;span class=&#34;c1&#34;&gt;#   from (irb):xx&lt;/span&gt;
-
-&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.singleton_class.private_instance_methods.grep /associated_records/&lt;/span&gt;
-&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; [:associated_records]&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;We now have a way to avoid the repetition and to improve the readability of the code. Only problem is, do all of us understand what is going on here? Ruby as a language gives us immense meta-programming flexibility and I decided to take this even further.&lt;/p&gt;
-
-&lt;h2 id=&#34;how-far-can-we-go-with-this&#34;&gt;How far can we go with this?&lt;/h2&gt;
-
-&lt;p&gt;Remember the &lt;code&gt;class_methods&lt;/code&gt; method defined on module from ActiveSupport::Concern? Will ruby allow us to do something like that?. Lets take a look at the source code for &lt;code&gt;class_methods&lt;/code&gt; from ActiveSupport::Concern.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;# File activesupport/lib/active_support/concern.rb, line 134&lt;/span&gt;
-&lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;class_methods&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;class_methods_module_definition&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-  &lt;span class=&#34;n&#34;&gt;mod&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;const_defined?&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;ss&#34;&gt;:ClassMethods&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;kp&#34;&gt;false&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;?&lt;/span&gt;
-    &lt;span class=&#34;nb&#34;&gt;const_get&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;ss&#34;&gt;:ClassMethods&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
-    &lt;span class=&#34;nb&#34;&gt;const_set&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;ss&#34;&gt;:ClassMethods&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;no&#34;&gt;Module&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;new&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-
-  &lt;span class=&#34;n&#34;&gt;mod&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;module_eval&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;class_methods_module_definition&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The following is what happens when that method is executed:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;the method &lt;code&gt;class_methods&lt;/code&gt; checks whether there is an already exisiting constant, &lt;code&gt;:ClassMethods&lt;/code&gt;&lt;br /&gt;&lt;/li&gt;
-&lt;li&gt;if it is not present, instantiate an anonymous module and set it to local variable &lt;code&gt;mod&lt;/code&gt;&lt;br /&gt;&lt;/li&gt;
-&lt;li&gt;runs &lt;code&gt;module_eval on mod&lt;/code&gt; with the given block.&lt;br /&gt;
-&lt;br /&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Let&amp;rsquo;s decipher what ActiveSupport does here by trying this out on the console and filling the blanks whenever necessary.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;module&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;Holder&lt;/span&gt;
-  &lt;span class=&#34;n&#34;&gt;mod&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;const_set&lt;/span&gt; &lt;span class=&#34;ss&#34;&gt;:ClassMethods&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;no&#34;&gt;Module&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;new&lt;/span&gt;
-  &lt;span class=&#34;n&#34;&gt;mod&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;module_eval&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;do&lt;/span&gt;
-    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;associated_records&lt;/span&gt;
-    &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; Holder::ClassMethods.class&lt;/span&gt;
-&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; Module&lt;/span&gt;
-
-&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;CustomSerializer&lt;/span&gt;
-  &lt;span class=&#34;kp&#34;&gt;extend&lt;/span&gt; &lt;span class=&#34;no&#34;&gt;Holder&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;::&lt;/span&gt;&lt;span class=&#34;no&#34;&gt;ClassMethod&lt;/span&gt;
-&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.singleton_class.instance_methods.grep /associated_records/&lt;/span&gt;
-&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; [:associated_records]&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In short, ActiveSuppoert::Concern uses an anonymous class as a temporary storage. But can we use this to create a helper of our own? This is what I came up with.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;Object&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;private_class_methods&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;block&lt;/span&gt;
-    &lt;span class=&#34;n&#34;&gt;anonymous_module&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;no&#34;&gt;Module&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;new&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;block&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-    &lt;span class=&#34;n&#34;&gt;anonymous_module&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;instance_methods&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;each&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;method&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;anonymous_module&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;send&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;ss&#34;&gt;:private&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;method&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
-    &lt;span class=&#34;kp&#34;&gt;extend&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;anonymous_module&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;CustomSerializer&lt;/span&gt;
-  &lt;span class=&#34;n&#34;&gt;private_class_methods&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;do&lt;/span&gt;
-    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;associated_records&lt;/span&gt;
-    &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-  &lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-&lt;span class=&#34;k&#34;&gt;end&lt;/span&gt;
-
-&lt;span class=&#34;c1&#34;&gt;# :xx &amp;gt; CustomSerializer.singleton_class.private_instance_methods.grep /associated_records/&lt;/span&gt;
-&lt;span class=&#34;c1&#34;&gt;# =&amp;gt; [:associated_records]&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&#34;getting-back-to-our-refactor&#34;&gt;Getting back to our refactor&lt;/h2&gt;
-
-&lt;p&gt;In the end, I went with the &lt;code&gt;private_class_methods :method_A, :method_B&lt;/code&gt;. Why, one might ask. I went through the code base and checked for usages of private_class_method and for classes that could use this helper. I couldnt find much. I checked for the churn of CustomSerializer class. It was very low, and again, this new method isnt documented anywhere so, another developer will have to grep through the codebase to find its definition.&lt;/p&gt;
-
-&lt;p&gt;In the end cons associated with patching a core class outweighed the pros of having a handy helper.&lt;/p&gt;
-</description>
+      <description>A while back, the CTO of my client company assigned me a ticket, which was to fix a bug that has been plaguing their systems for a while. It turned out to be a bug in the custom serializer they had, which would serialize and deserialize data sent between their microservices.
+This serializer was small enough to be written in a single class and had two or three methods which did all the heavy lifting and obviously were fat.</description>
     </item>
     
     <item>
@@ -208,62 +36,8 @@
       <pubDate>Thu, 21 Sep 2017 14:21:14 +0530</pubDate>
       
       <guid>http://midhunkrishna.in/posts/2017/09/working-with-concurrent-ruby/</guid>
-      <description>
-
-&lt;p&gt;Most of us have worked on legacy/inherited code bases and sometimes we are assigned that exhilarating task of hunting down that performance issue which is causing worker threads to be killed, users to get pissed off and the support team to repent for their past sins.&lt;/p&gt;
-
-&lt;h2 id=&#34;the-dreaded-shipment-uploader&#34;&gt;The dreaded shipment uploader&lt;/h2&gt;
-
-&lt;p&gt;Being a TMS (Transportation Management System), our system dealt with Deliveries, and Shipments. The shipment uploader endpoint allowed the shipping companies to upload a csv which imported these shipments, grouped them into deliveries and calculated the projected cost of shipping these from their origin to destination and showed these values on the uploader UI itself.&lt;/p&gt;
-
-&lt;p&gt;We had a large number of users from multiple companies using that endpoint, so changing the UI to support an asynchronous upload ended up not being an option at all.&lt;/p&gt;
-
-&lt;p&gt;I got a copy of one of the files from S3 and started an upload, it took ~ 90 seconds for the upload to go through, used benchmark module to figure out what were the hot zones of that controller action and finally a pattern emerged. Time taken by the uploader was proportionate to the number of shipments assigned to a delivery.&lt;/p&gt;
-
-&lt;script src=&#34;//gist.github.com/midhunkrishna/f5de6c59f6bc198abc3126825770f68a.js&#34;&gt;&lt;/script&gt;
-
-&lt;p&gt;It seemed, validating routes and checking the packaging of cargos on each shipment took time. If I can run these operations parallelly, I could, in theory, cut down some time.&lt;/p&gt;
-
-&lt;h2 id=&#34;threads-and-concurrent-ruby&#34;&gt;Threads and Concurrent Ruby&lt;/h2&gt;
-
-&lt;p&gt;It is often intimidating even to entertain the idea of working with threads. They can bring in complexity, unpredictable behaviors and the later arises due to a lack of thread-safe code. Ruby is a language of mutable references, it is often difficult to write 100% thread-safe code, hence I needed something which offered primitives and patterns that would guarantee thread safety.&lt;/p&gt;
-
-&lt;p&gt;I checked &lt;a href=&#34;https://github.com/ruby-concurrency/concurrent-ruby&#34;&gt;Concurrent Ruby &lt;/a&gt;
- and &lt;a href=&#34;https://github.com/celluloid/celluloid&#34;&gt;Celluloid &lt;/a&gt;
- and decided to go with Concurrent Ruby since the application gemset had it (via Sidekiq)&lt;/p&gt;
-
-&lt;p&gt;I decided to refactor this using &lt;a href=&#34;https://github.com/ruby-concurrency/concurrent-ruby/blob/master/doc/future.md&#34;&gt;Concurrent Ruby Futures. &lt;/a&gt;
-. In general, using futures, one can perform an action atomically, in an asynchronous fashion, and then come back and collect the result of the action at a later time, and while collecting the result, the main thread blocks until the result of the action is available.&lt;/p&gt;
-
-&lt;script src=&#34;//gist.github.com/midhunkrishna/b38b6bacfe377e8a8ffd5fc3812af2ac.js&#34;&gt;&lt;/script&gt;
-
-&lt;p&gt;This seemed to fix the performance problem we were facing. I was able to get the uploader to finish under 20 seconds. Little did I know that this would blow up in my face 10 minutes later.&lt;/p&gt;
-
-&lt;h2 id=&#34;concurrent-ruby-futures-and-exceptions&#34;&gt;Concurrent Ruby Futures and Exceptions&lt;/h2&gt;
-
-&lt;p&gt;Usually, when an exception occurs, in the main thread, the interpreter stops and gathers the exception data and then it exists with the exception and the gathered data. In the case of Ruby Threads, when calling Thread#join, the exception that occured in the thread are processed. As an alternative to this, we can also set &lt;a href=&#34;https://ruby-doc.org/core-1.9.3/Thread.html#method-c-abort_on_exception&#34;&gt;Thread#abort_on_exception &lt;/a&gt;
- to be true, which will cause all threads to &lt;a href=&#34;https://stackoverflow.com/questions/9095316/handling-exceptions-raised-in-a-ruby-thread#answer-9095369&#34;&gt;exit when an exception is raised in any threads. &lt;/a&gt;
-&lt;/p&gt;
-
-&lt;p&gt;In the case of Concurrent Ruby Futures, exceptions are swallowed.&lt;/p&gt;
-
-&lt;h2 id=&#34;promises-to-the-rescue&#34;&gt;Promises to the rescue.&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://github.com/ruby-concurrency/concurrent-ruby/blob/master/doc/promises.in.md&#34;&gt;Concurrent Ruby Promises  &lt;/a&gt;
- are very much like Futures, but with extra features and one of which is that the promise object keeps track of its state.&lt;/p&gt;
-
-&lt;script src=&#34;//gist.github.com/midhunkrishna/ce5356e1375d306f42be376999434b5f.js&#34;&gt;&lt;/script&gt;
-
-&lt;p&gt;What happens if each of these threads raised their exception? I decided to write a wrapper around Concurrent Ruby Promise. Why a wrapper, you might ask. The primary motivation was that I should be able to tap into all these concurrent goodness without worrying a lot, without scratching my head as to why I did not get a notification when that failed to process.&lt;/p&gt;
-
-&lt;p&gt;The final implementation is,&lt;/p&gt;
-
-&lt;script src=&#34;//gist.github.com/midhunkrishna/8f683668da68cd02d97c9937a7676f24.js&#34;&gt;&lt;/script&gt;
-
-&lt;h2 id=&#34;summing-it-up&#34;&gt;Summing it up&lt;/h2&gt;
-
-&lt;p&gt;At the end of the day, I learned a lot from this little excercise. In this particular case, each shipment objects were different and independant and hence all I needed was a good solid solution that would give me a good abstraction which is clean and easy to use at the same time, provided a level of thread safety through concurrent primitives which I could rely on.&lt;/p&gt;
-</description>
+      <description>Most of us have worked on legacy/inherited code bases and sometimes we are assigned that exhilarating task of hunting down that performance issue which is causing worker threads to be killed, users to get pissed off and the support team to repent for their past sins.
+The dreaded shipment uploader Being a TMS (Transportation Management System), our system dealt with Deliveries, and Shipments. The shipment uploader endpoint allowed the shipping companies to upload a csv which imported these shipments, grouped them into deliveries and calculated the projected cost of shipping these from their origin to destination and showed these values on the uploader UI itself.</description>
     </item>
     
     <item>
@@ -272,64 +46,7 @@
       <pubDate>Mon, 14 Aug 2017 15:31:25 +0530</pubDate>
       
       <guid>http://midhunkrishna.in/posts/2017/08/ctes-and-window-functions/</guid>
-      <description>
-
-&lt;p&gt;I am a big fan of code readability, but being a fan and expecting the code I write to be readable are two different things. Readable code is easier to understand and much more straightforward to grasp. One significant difference I find while comparing readable and unreadable code, apart from the obvious, is how many different variables I have to hold in my head at a time while I try to grapple my head around it. If this task is simple, I believe that this is not because of some random act of brilliance but due to careful code construction.&lt;/p&gt;
-
-&lt;p&gt;A particular example is SQL. The more it does, the more it gets unreadable, A good way to make it readable is using the above mentioned Common Table Expressions or CTEs.&lt;/p&gt;
-
-&lt;p&gt;CTEs helps achieve this by its ability to separate data into independent logical entities according to the context of the query.&lt;/p&gt;
-
-&lt;script src=&#34;//gist.github.com/midhunkrishna/6c863c9b7125e89409395556c70ce790.js&#34;&gt;&lt;/script&gt;
-
-&lt;p&gt;Hence we have a clear classification called popular posts, which is an abstraction of any post with an upvote count of six or above.&lt;/p&gt;
-
-&lt;h2 id=&#34;what-i-came-across-the-other-day&#34;&gt;What I came across the other day&amp;hellip;&lt;/h2&gt;
-
-&lt;p&gt;The other day I ran into a case in which a query was taking much more time than it should. When checked, I found that the join table was quite large. I didn&amp;rsquo;t know how to handle this but hey, someone must have faced a similar issue and then I found out window functions.&lt;/p&gt;
-
-&lt;p&gt;Lets take a use case and see how Window Functions can be of use.&lt;/p&gt;
-
-&lt;p&gt;For a particular report, in our e-commerce app, we need to find out each item&amp;rsquo;s latest n review-comments, in our case, we can set n = 2.&lt;/p&gt;
-
-&lt;p&gt;We can write a simple join and then filter that in our application language (Ruby, Go, PHP etc.)&lt;/p&gt;
-
-&lt;script src=&#34;//gist.github.com/midhunkrishna/9c1336862b3946b305ddeea530fc03f2.js&#34;&gt;&lt;/script&gt;
-
-&lt;p&gt;but, for a system like Amazon, this solution would turn out to be awful since items might have large number of comments and to tackle the sheer number of items an comments, we will have to possibly reduce the dataset size even before the join.&lt;/p&gt;
-
-&lt;h2 id=&#34;window-function&#34;&gt;Window Function&lt;/h2&gt;
-
-&lt;p&gt;In general, a Window Function, is a mathematical function that is zero valued outside of some interval. In case of SQL engines, they operate on rows that are related to the current row, in our case, this can be the item_id. All rows of the join that has a common item_id acts as a partition over which the window function acts.&lt;/p&gt;
-
-&lt;h2 id=&#34;getting-back-to-our-problem&#34;&gt;Getting back to our problem&lt;/h2&gt;
-
-&lt;p&gt;We rewrite our query to do the following:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Window function should operate on a partition of same item_ids&lt;br /&gt;&lt;/li&gt;
-&lt;li&gt;Each of these partitions should be ordered by created time stamp of review_comment&lt;br /&gt;&lt;/li&gt;
-&lt;li&gt;select only the top two from each partition&lt;br /&gt;
-&lt;br /&gt;
-&lt;br /&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;script src=&#34;//gist.github.com/midhunkrishna/bdd4e9a25e522e90c1fa93ee1bc39a78.js&#34;&gt;&lt;/script&gt;
-
-&lt;p&gt;This still is resulting in full join table, but now we have &lt;code&gt;comment_row_number&lt;/code&gt; field to let us know that the newest review_comment has a value of 1. All we need to do now is to filter using that column. We have used row_number() function from postgres as the window function here. &lt;a href=&#34;https://www.postgresql.org/docs/9.3/static/functions-window.html&#34;&gt;According to the docs, &lt;/a&gt;
- any built-in or user-defined aggregate function can be used as a window function.&lt;/p&gt;
-
-&lt;script src=&#34;//gist.github.com/midhunkrishna/132a8c3bc1b3e380d90be2ca0b262c2e.js&#34;&gt;&lt;/script&gt;
-
-&lt;h2 id=&#34;putting-it-all-together&#34;&gt;Putting it all together&lt;/h2&gt;
-
-&lt;p&gt;Even though we have our answer, our query has become pretty hard to read. We can get better readability by introducing a &lt;a href=&#34;https://www.postgresql.org/docs/9.6/static/queries-with.html&#34;&gt;Common Table Expression. &lt;/a&gt;
-&lt;/p&gt;
-
-&lt;script src=&#34;//gist.github.com/midhunkrishna/685717a9a21cf066d60d1e473096e675.js&#34;&gt;&lt;/script&gt;
-
-&lt;p&gt;Well, that is it folks. We have put together two concepts, readbility and performance to create something which is the best of both worlds.&lt;/p&gt;
-</description>
+      <description>I am a big fan of code readability, but being a fan and expecting the code I write to be readable are two different things. Readable code is easier to understand and much more straightforward to grasp. One significant difference I find while comparing readable and unreadable code, apart from the obvious, is how many different variables I have to hold in my head at a time while I try to grapple my head around it.</description>
     </item>
     
   </channel>

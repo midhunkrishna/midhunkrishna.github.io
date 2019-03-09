@@ -66,7 +66,7 @@
 
 <p>CTEs helps achieve this by its ability to separate data into independent logical entities according to the context of the query.</p>
 
-<script src="//gist.github.com/midhunkrishna/6c863c9b7125e89409395556c70ce790.js"></script>
+<script type="application/javascript" src="//gist.github.com/midhunkrishna/6c863c9b7125e89409395556c70ce790.js"></script>
 
 <p>Hence we have a clear classification called popular posts, which is an abstraction of any post with an upvote count of six or above.</p>
 
@@ -80,7 +80,7 @@
 
 <p>We can write a simple join and then filter that in our application language (Ruby, Go, PHP etc.)</p>
 
-<script src="//gist.github.com/midhunkrishna/9c1336862b3946b305ddeea530fc03f2.js"></script>
+<script type="application/javascript" src="//gist.github.com/midhunkrishna/9c1336862b3946b305ddeea530fc03f2.js"></script>
 
 <p>but, for a system like Amazon, this solution would turn out to be awful since items might have large number of comments and to tackle the sheer number of items an comments, we will have to possibly reduce the dataset size even before the join.</p>
 
@@ -100,60 +100,24 @@
 <br /></li>
 </ul>
 
-<script src="//gist.github.com/midhunkrishna/bdd4e9a25e522e90c1fa93ee1bc39a78.js"></script>
+<script type="application/javascript" src="//gist.github.com/midhunkrishna/bdd4e9a25e522e90c1fa93ee1bc39a78.js"></script>
 
 <p>This still is resulting in full join table, but now we have <code>comment_row_number</code> field to let us know that the newest review_comment has a value of 1. All we need to do now is to filter using that column. We have used row_number() function from postgres as the window function here. <a href="https://www.postgresql.org/docs/9.3/static/functions-window.html">According to the docs, </a>
  any built-in or user-defined aggregate function can be used as a window function.</p>
 
-<script src="//gist.github.com/midhunkrishna/132a8c3bc1b3e380d90be2ca0b262c2e.js"></script>
+<script type="application/javascript" src="//gist.github.com/midhunkrishna/132a8c3bc1b3e380d90be2ca0b262c2e.js"></script>
 
 <h2 id="putting-it-all-together">Putting it all together</h2>
 
 <p>Even though we have our answer, our query has become pretty hard to read. We can get better readability by introducing a <a href="https://www.postgresql.org/docs/9.6/static/queries-with.html">Common Table Expression. </a>
 </p>
 
-<script src="//gist.github.com/midhunkrishna/685717a9a21cf066d60d1e473096e675.js"></script>
+<script type="application/javascript" src="//gist.github.com/midhunkrishna/685717a9a21cf066d60d1e473096e675.js"></script>
 
 <p>Well, that is it folks. We have put together two concepts, readbility and performance to create something which is the best of both worlds.</p>
-
-          <div id="disqus_thread"></div>
-<script type="text/javascript">
-
-(function() {
-    
-    
-    if (window.location.hostname == "localhost")
-        return;
-
-    var dsq = document.createElement('script');
-    dsq.type = 'text/javascript';
-    dsq.async = true;
-
-    var disqus_shortname = 'midhunkrishna';
-    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();
-</script>
-
-<noscript>
-  Please enable JavaScript to view the
-  <a href="http://disqus.com/?ref_noscript">
-    comments powered by Disqus.
-  </a>
-</noscript>
-
-<a href="http://disqus.com/" class="dsq-brlink">
-  comments powered by
-  <span class="logo-disqus">
-    Disqus
-  </span>
-</a>
 
         </div>
       </div>
     </div>
-
-    <script src="/js/main-8fdd01d0.js" ></script>
-
   </body>
 </html>

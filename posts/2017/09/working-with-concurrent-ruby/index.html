@@ -70,7 +70,7 @@
 
 <p>I got a copy of one of the files from S3 and started an upload, it took ~ 90 seconds for the upload to go through, used benchmark module to figure out what were the hot zones of that controller action and finally a pattern emerged. Time taken by the uploader was proportionate to the number of shipments assigned to a delivery.</p>
 
-<script src="//gist.github.com/midhunkrishna/f5de6c59f6bc198abc3126825770f68a.js"></script>
+<script type="application/javascript" src="//gist.github.com/midhunkrishna/f5de6c59f6bc198abc3126825770f68a.js"></script>
 
 <p>It seemed, validating routes and checking the packaging of cargos on each shipment took time. If I can run these operations parallelly, I could, in theory, cut down some time.</p>
 
@@ -85,7 +85,7 @@
 <p>I decided to refactor this using <a href="https://github.com/ruby-concurrency/concurrent-ruby/blob/master/doc/future.md">Concurrent Ruby Futures. </a>
 . In general, using futures, one can perform an action atomically, in an asynchronous fashion, and then come back and collect the result of the action at a later time, and while collecting the result, the main thread blocks until the result of the action is available.</p>
 
-<script src="//gist.github.com/midhunkrishna/b38b6bacfe377e8a8ffd5fc3812af2ac.js"></script>
+<script type="application/javascript" src="//gist.github.com/midhunkrishna/b38b6bacfe377e8a8ffd5fc3812af2ac.js"></script>
 
 <p>This seemed to fix the performance problem we were facing. I was able to get the uploader to finish under 20 seconds. Little did I know that this would blow up in my face 10 minutes later.</p>
 
@@ -102,56 +102,20 @@
 <p><a href="https://github.com/ruby-concurrency/concurrent-ruby/blob/master/doc/promises.in.md">Concurrent Ruby Promises  </a>
  are very much like Futures, but with extra features and one of which is that the promise object keeps track of its state.</p>
 
-<script src="//gist.github.com/midhunkrishna/ce5356e1375d306f42be376999434b5f.js"></script>
+<script type="application/javascript" src="//gist.github.com/midhunkrishna/ce5356e1375d306f42be376999434b5f.js"></script>
 
 <p>What happens if each of these threads raised their exception? I decided to write a wrapper around Concurrent Ruby Promise. Why a wrapper, you might ask. The primary motivation was that I should be able to tap into all these concurrent goodness without worrying a lot, without scratching my head as to why I did not get a notification when that failed to process.</p>
 
 <p>The final implementation is,</p>
 
-<script src="//gist.github.com/midhunkrishna/8f683668da68cd02d97c9937a7676f24.js"></script>
+<script type="application/javascript" src="//gist.github.com/midhunkrishna/8f683668da68cd02d97c9937a7676f24.js"></script>
 
 <h2 id="summing-it-up">Summing it up</h2>
 
 <p>At the end of the day, I learned a lot from this little excercise. In this particular case, each shipment objects were different and independant and hence all I needed was a good solid solution that would give me a good abstraction which is clean and easy to use at the same time, provided a level of thread safety through concurrent primitives which I could rely on.</p>
 
-          <div id="disqus_thread"></div>
-<script type="text/javascript">
-
-(function() {
-    
-    
-    if (window.location.hostname == "localhost")
-        return;
-
-    var dsq = document.createElement('script');
-    dsq.type = 'text/javascript';
-    dsq.async = true;
-
-    var disqus_shortname = 'midhunkrishna';
-    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();
-</script>
-
-<noscript>
-  Please enable JavaScript to view the
-  <a href="http://disqus.com/?ref_noscript">
-    comments powered by Disqus.
-  </a>
-</noscript>
-
-<a href="http://disqus.com/" class="dsq-brlink">
-  comments powered by
-  <span class="logo-disqus">
-    Disqus
-  </span>
-</a>
-
         </div>
       </div>
     </div>
-
-    <script src="/js/main-8fdd01d0.js" ></script>
-
   </body>
 </html>

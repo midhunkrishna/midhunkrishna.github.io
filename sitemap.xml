@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>http://midhunkrishna.in/posts/2019/03/maintaining-multiple-database-versions/</loc>
+    <lastmod>2019-03-09T14:04:15+05:30</lastmod>
+  </url>
   
   <url>
     <loc>http://midhunkrishna.in/posts/2017/10/private-class-methods-in-ruby/</loc>
@@ -18,13 +24,23 @@
   
   <url>
     <loc>http://midhunkrishna.in/</loc>
-    <lastmod>2017-10-18T23:49:34+05:30</lastmod>
+    <lastmod>2019-03-09T14:04:15+05:30</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://midhunkrishna.in/posts/</loc>
-    <lastmod>2017-10-18T23:49:34+05:30</lastmod>
+    <lastmod>2019-03-09T14:04:15+05:30</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://midhunkrishna.in/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://midhunkrishna.in/tags/</loc>
+    <priority>0</priority>
   </url>
   
 </urlset>

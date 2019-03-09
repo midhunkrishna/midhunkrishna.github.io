@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.min.css">
+<link rel="stylesheet" type="text/css" href="/css/main-8cd6a0e8.css" />
+
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css" />
+
+<link rel="stylesheet" href="https://use.typekit.net/qfm8gvh.css">
+
+  <body class="flow-text">
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+  <div class="container">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="http://midhunkrishna.in">
+        reachme@midhunkrishna.in
+        
+      </a>
+
+      <div id="navbarBurger" class="navbar-burger burger" data-target="navMenuIndex">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+
+    <div id="navMenuIndex" class="navbar-menu">
+      <div class="navbar-start">
+      </div>
+      <div class="navbar-end">
+        
+        
+        
+
+        
+        
+        
+
+        
+        
+        
+
+        <div class="navbar-item">
+          <a href="/posts"> Journal </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+    <div class="loop section content-item">
+      <div class="container post">
+        <div class="tk-museo heading">
+          <h1 class="flexi-h1">maintaining multiple database versions</h1>
+          <div class="companion">
+            How to live with multiple database versions in your local machine
+          </div>
+        </div>
+        <div class="content-body">
+          
+
+<h2 id="introduction-rainbows-and-unicorns">Introduction: Rainbows and Unicorns.</h2>
+
+<p>As a web dev,  I interact with a lot of tools that help me convert coffee (these days I have switched over to tea) to code, and for the most part, different versions of the same tools in my toolbelt co-exist as they have their version-managers. The real power of the version managers become apparent whenever I move from one project to another, <code>The Next Amazon</code> project is using Ruby 2.4 while <code>The Ubercool-Custom-T-Shirt App</code> is using 2.6. &lsquo;Oh well, I have rbenv.&rsquo;</p>
+
+<p>I felt right about my dev machine setup and thanked OSS giants for letting me stand on their shoulders and use these excellent version managers until I moved to <code>Already Existing Logistics Software.</code>  This application required Postgresql 9.5, and I had 9.6.</p>
+
+<p>Why is this an issue? you mock me until I tell you that our logistics app uses structure.sql instead of schema.rb which means I need to run the exact version of PostgreSQL that everyone in my team uses, down to the patch version.</p>
+
+<h2 id="postgresql-and-the-missing-version-managers">PostgreSQL and the missing Version Managers.</h2>
+
+<p>The fear of desecrating my local machine by installing multiple versions of PostgreSQL gave me many a sleepless night, I mean should I do it or not? Is there a better alternative? I found not one, but two that would help me make my Fitbit happy again (because sleep) and I went with the simplest of the two.</p>
+
+<h2 id="pg-ctlcluster-a-fix-for-the-brave-and-true">pg_ctlcluster: A fix for the brave and true.</h2>
+
+<p>pg_ctlcluster is a wrapper for pg_ctl utility used to control the PostgreSQL Postmaster server. Every time a client application accesses a database, it connects (over a network or locally) to a running Postmaster. (read more about postmaster here).</p>
+
+<p>Once we have pg_ctlcluster in your local machine,<br />
+- Do you have it already? <code>which pg_ctlcluster</code><br />
+- Where does it come from?  <code>dpkg -S $(which pg_ctlclusters)</code>  )</p>
+
+<p>We can check the statuses of all the PostgreSQL clusters in your local machine by:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">romeo@ubuntu:~$ pg_lsclusters
+Ver Cluster Port Status Owner    Data directory          Log file
+<span class="m">9</span>.4 main     <span class="m">5432</span> online postgres /var/lib/postgresql/9.4 /var/log/postgresql/postgresql-9.4-main.log
+<span class="m">9</span>.6  main    <span class="m">5433</span> online postgres /var/lib/postgresql/9.6/main /var/log/postgresql/postgresql-9.6-main.log
+
+<span class="c1"># Stopping a cluster:</span>
+romeo@ubuntu:~$ pg_ctlcluster <span class="m">9</span>.6 main stop
+
+<span class="c1"># Removing a cluster:</span>
+romeo@ubuntu:~$ pg_dropcluster --stop <span class="m">9</span>.6 main
+
+<span class="c1"># Creating a new cluster:</span> 
+romeo@ubuntu:~$ sudo pg_createcluster --locale en_US.UTF-8 --start <span class="m">9</span>.6 main</code></pre></div>
+<p>All you need to do now is edit your database config file (and that is config/database.yml for us Rails developers) and update the port. But aint that a lot of commands I need to learn?</p>
+
+<h2 id="elephant-in-a-jar">Elephant, in a jar.</h2>
+
+<p>The second option I had was to use a docker image for PostgreSQL. Assuming we have docker daemon running on the local machine, we need a PostgreSQL docker image. lets go ahead and use the official docker image which is available from <a href="https://hub.docker.com/_/postgres">dockerhub </a>
+.</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash"> docker run -d -p <span class="m">5432</span>:5432 --restart always 
+--name postgres -e <span class="nv">POSTGRES_PASSWORD</span><span class="o">=</span>postgres postgres:9.6</code></pre></div>
+<p>&ndash;detach, -d      Run container in background and print container ID<br />
+&ndash;restart,  n       <a href="https://docs.docker.com/config/containers/start-containers-automatically/#use-a-restart-policy">Restart policy to apply when a container exits </a>
+</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">romeo@ubuntu:~$ docker ps -a
+CONTAINER ID        IMAGE                                 COMMAND                  CREATED             STATUS                      PORTS                    NAMES
+41b215a3153a        postgres                              <span class="s2">&#34;docker-entrypoint.s…&#34;</span>   <span class="m">3</span> days ago          Up <span class="m">26</span> hours                 <span class="m">0</span>.0.0.0:5432-&gt;5432/tcp   postgres</code></pre></div>
+<p>As we can see, we have a PostgreSQL server running on port 5432 on localhost, now we can update the database.yml file like the following:</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">default<span class="p">:</span><span class="w"> </span><span class="cp">&amp;default</span><span class="w">
+</span><span class="w">  </span>...<span class="w">
+</span><span class="w">  </span>url<span class="p">:</span><span class="w"> </span>postgresql<span class="p">:</span>//localhost/<span class="w">
+</span><span class="w">
+</span><span class="w"></span>development<span class="p">:</span><span class="w">
+</span><span class="w">  </span>&lt;&lt;<span class="p">:</span><span class="w"> </span><span class="cp">*default</span><span class="w">
+</span><span class="w">  </span>database<span class="p">:</span><span class="w"> </span>database_name</code></pre></div>
+<p>That is it. With just the <code>url</code>, Rails would be able to connect to the dockerized PostgreSQL.</p>
+
+<h2 id="closing-thoughts">Closing Thoughts.</h2>
+
+<p>In the end I ended up using the docker image due to the following reasons:<br />
+ * It&rsquo;s far more comfortable to use (I use it already, yes, I am biased)<br />
+ * I need not learn commands which are not useful in any other context</p>
+
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
